@@ -142,17 +142,15 @@
       },
       "resources": [
         {
-          "name": "web",
-          "type": "sourcecontrols",
           "apiVersion": "2020-06-01",
-          "properties": {
-            "RepoUrl": "https://github.com/schmm2/kiri-backend.git",
-            "branch": "main",
-            "IsManualIntegration": true
-          },
+          "type": "extensions",
+          "name": "zipdeploy",
           "dependsOn": [
             "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-          ]
+          ],
+          "properties": {
+            "packageUri": "https://github.com/schmm2/kiri-backend/releases/download/public/kiri-backend-v001.zip"
+          }
         }
       ]
     },
