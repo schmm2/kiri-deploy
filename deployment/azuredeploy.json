@@ -44,7 +44,7 @@
     }
   },
   "variables": {
-    "frontendKey": "xxx",
+    "frontendKey": "[uniqueString(utcNow())]",
     "storageAccountName": "[concat('kiri', uniqueString(resourceGroup().id))]",
     "frontendAppName": "[concat(parameters('siteName'),'')]",
     "appInsightsAppName": "[concat(parameters('siteName'),'-appInsights')]",
@@ -155,8 +155,9 @@
         {
           "type": "keys",
           "apiVersion": "2020-06-01",
-          "name": "frontendKey",
+          "name": "[concat(variables('functionAppName'), '/default/frontendkey')]",
           "properties": {
+            "name": "frontendkey",
             "value": "[variables('frontendKey')]"
           },
           "dependsOn": [
