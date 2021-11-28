@@ -168,7 +168,7 @@
     // https://stackoverflow.com/questions/59967186/creating-an-azure-function-host-key-using-arm-doesnt-work-on-a-new-deployment
     {
       "type": "Microsoft.Web/sites/host/functionsKeys",
-      "apiVersion": "2020-06-01",
+      "apiVersion": "2018-11-01",
       "name": "[concat(variables('functionAppName'), '/default/frontendkey')]",
       "properties": {
         "name": "frontendkey",
