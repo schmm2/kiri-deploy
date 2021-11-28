@@ -44,6 +44,7 @@
     }
   },
   "variables": {
+    "frontendKey": "xxx",
     "storageAccountName": "[concat('kiri', uniqueString(resourceGroup().id))]",
     "frontendAppName": "[concat(parameters('siteName'),'')]",
     "appInsightsAppName": "[concat(parameters('siteName'),'-appInsights')]",
@@ -152,6 +153,14 @@
       },
       "resources": [
         {
+          "type": "Microsoft.Web/sites/functions/keys",
+          "apiVersion": "2020-06-01",
+          "name": "frontendKey",
+          "properties": {
+            "value": "[variables('frontendKey')]"
+          }
+        },
+        {
           "apiVersion": "2020-06-01",
           "type": "extensions",
           "name": "zipdeploy",
@@ -235,7 +244,8 @@
             },
             {
               "name": "REACT_APP_FUNCTIONKEY",
-              "value": "[listkeys(concat(resourceId('Microsoft.Web/sites', variables('functionAppName')), '/host/default'),'2020-06-01').functionKeys.default]"
+              "value": "[variables('frontendKey')]"
+              //"value": "[listkeys(concat(resourceId('Microsoft.Web/sites', variables('functionAppName')), '/host/default'),'2020-06-01').functionKeys.default]"
             }
           ]
         }
