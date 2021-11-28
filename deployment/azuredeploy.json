@@ -46,6 +46,7 @@
   "variables": {
     "storageAccountName": "[concat('kiri', uniqueString(resourceGroup().id))]",
     "frontendAppName": "[concat(parameters('siteName'),'')]",
+    "appInsightsAppName": "[concat(parameters('siteName'),'-appInsights')]",
     "functionAppName": "[concat(parameters('siteName'),'-backend')]",
     "frontendASPName": "[concat(parameters('siteName'),'-aspfrontend')]",
     "functionASPName": "[concat(parameters('siteName'),'-aspbackend')]",
@@ -92,7 +93,8 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('functionASPName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('cosmosName'))]"
+        "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('cosmosName'))]",
+        "[resourceId('microsoft.insights/components/', variables('appInsightsAppName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionASPName'))]",
@@ -100,12 +102,20 @@
         "siteConfig": {
           "appSettings": [
             {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
               "name": "AzureWebJobsStorage",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
             },
             {
               "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsAppName'))).InstrumentationKey]"
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
@@ -118,10 +128,6 @@
             {
               "name": "WEBSITE_NODE_DEFAULT_VERSION",
               "value": "~14"
-            },
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "1"
             },
             {
               "name": "FUNCTIONS_WORKER_RUNTIME",
@@ -158,6 +164,30 @@
           }
         }
       ]
+    }, /*
+    {
+      "type": "Microsoft.Web/sites/config",
+      "apiVersion": "2021-02-01",
+      "name": "[variables('functionAppName')]",
+      "kind": "string",
+      "properties": {
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+      ]
+    },*/
+    {
+      "type": "Microsoft.Insights/components",
+      "name": "[variables('appInsightsAppName')]",
+      "apiVersion": "2020-02-02",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('functionAppName'))]": "Resource"
+      },
+      "properties": {
+        "Application_Type": "web",
+        "ApplicationId": "[variables('functionAppName')]"
+      }
     },
     {
       "type": "Microsoft.Web/serverfarms",
@@ -170,7 +200,7 @@
         "tier": "Basic"
       }
     },
-    /* Wait for 5min as Function App will be restarted */
+    /* Wait for x min as Function App will be restarted */
     {
       "type": "Microsoft.Resources/deploymentScripts",
       "apiVersion": "2020-10-01",
@@ -213,17 +243,18 @@
             {
               "name": "REACT_APP_BACKENDAPIURL",
               "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2020-06-01').defaultHostName,'/api')]"
-            },
+            } /*
             {
               "name": "REACT_APP_FUNCTIONKEY",
               "value": "[listkeys(concat(resourceId('Microsoft.Web/sites', variables('functionAppName')), '/host/default'),'2020-06-01').functionKeys.default]"
-            }
+            }*/
           ]
         }
       },
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('frontendASPName'))]",
         "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+        //"[resourceId('Microsoft.Web/sites', variables('functionAppName'), '/extensions/zipdeploy')]",
         "WaitSection"
       ],
       "resources": [
