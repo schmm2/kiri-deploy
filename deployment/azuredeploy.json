@@ -41,10 +41,15 @@
     "spIdApp": {
       "defaultValue": "",
       "type": "secureString"
+    },
+    "spIdAPI": {
+      "defaultValue": "",
+      "type": "secureString"
     }
   },
   "variables": {
-    "frontendKey": "[uniqueString(resourceGroup().id)]",
+    "tenantId": "[subscription().tenantId]",
+    //"frontendKey": "[uniqueString(resourceGroup().id)]",
     "storageAccountName": "[concat('kiri', uniqueString(resourceGroup().id))]",
     "frontendAppName": "[concat(parameters('siteName'),'')]",
     "appInsightsAppName": "[concat(parameters('siteName'),'-appInsights')]",
@@ -152,6 +157,42 @@
         }
       },
       "resources": [
+        {
+          "name": "[concat(variables('functionAppName'), '/authsettingsV2')]",
+          "apiVersion": "2021-02-01",
+          "type": "Microsoft.Web/sites/config",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "globalValidation": {
+              "requireAuthentication": true,
+              "unauthenticatedClientAction": "RedirectToLoginPage"
+            },
+            "IdentityProviders": {
+              "azureActiveDirectory": {
+                "enabled": true,
+                "registration": {
+                  "openIdIssuer": "[concat('https://login.microsoftonline.com/', variables('tenantId'),'/v2.0')]",
+                  "clientId": "[parameters('spIdAPI')]",
+                  "clientSecretSettingName": "AD_IDENTITY_CLIENT_SECRET"
+                },
+                "validation": {
+                  "allowedAudiences": [
+                    "[concat('api://',parameters('spIdAPI'))]"
+                  ]
+                },
+                "isAutoProvisioned": false
+              },
+              "login": {
+                "tokenStore": {
+                  "enabled": true
+                }
+              }
+            }
+          }
+        },
         {
           "apiVersion": "2020-06-01",
           "type": "extensions",
