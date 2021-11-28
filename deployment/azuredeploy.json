@@ -157,8 +157,7 @@
           "type": "extensions",
           "name": "zipdeploy",
           "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
-            "WaitSection"
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
           ],
           "properties": {
             "packageUri": "https://github.com/schmm2/kiri-backend/releases/download/public/kiri-backend-v001.zip"
@@ -166,6 +165,7 @@
         }
       ]
     },
+    // https://stackoverflow.com/questions/59967186/creating-an-azure-function-host-key-using-arm-doesnt-work-on-a-new-deployment
     {
       "type": "Microsoft.Web/sites/functions/keys",
       "apiVersion": "2020-06-01",
@@ -200,23 +200,6 @@
       "sku": {
         "name": "B2",
         "tier": "Basic"
-      }
-    },
-    /* Wait for x min as Function App will be restarted */
-    {
-      "type": "Microsoft.Resources/deploymentScripts",
-      "apiVersion": "2020-10-01",
-      "kind": "AzurePowerShell",
-      "name": "WaitSection",
-      "location": "[parameters('location')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-      ],
-      "properties": {
-        "azPowerShellVersion": "3.0",
-        "scriptContent": "start-sleep -Seconds 120",
-        "cleanupPreference": "Always",
-        "retentionInterval": "PT1H"
       }
     },
     {
