@@ -165,20 +165,6 @@
         }
       ]
     },
-    // https://stackoverflow.com/questions/59967186/creating-an-azure-function-host-key-using-arm-doesnt-work-on-a-new-deployment
-    {
-      "type": "Microsoft.Web/sites/host/functionsKeys",
-      "apiVersion": "2018-11-01",
-      "name": "[concat(variables('functionAppName'), '/default/frontendkey')]",
-      "properties": {
-        "name": "frontendkey",
-        "value": "[variables('frontendKey')]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
-        "[resourceId('Microsoft.Web/sites/extensions', variables('functionAppName'), 'zipdeploy')]"
-      ]
-    },
     {
       "type": "Microsoft.Insights/components",
       "name": "[variables('appInsightsAppName')]",
@@ -229,11 +215,6 @@
             {
               "name": "REACT_APP_BACKENDAPIURL",
               "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2020-06-01').defaultHostName,'/api')]"
-            },
-            {
-              "name": "REACT_APP_FUNCTIONKEY",
-              //"value": "[variables('frontendKey')]"
-              "value": "[listkeys(concat(resourceId('Microsoft.Web/sites', variables('functionAppName')), '/host/default'),'2020-06-01').functionKeys.default]"
             }
           ]
         }
