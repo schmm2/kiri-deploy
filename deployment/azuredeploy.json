@@ -153,18 +153,6 @@
       },
       "resources": [
         {
-          "type": "keys",
-          "apiVersion": "2020-06-01",
-          "name": "frontendkey",
-          "properties": {
-            "name": "frontendkey",
-            "value": "[variables('frontendKey')]"
-          },
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-          ]
-        },
-        {
           "apiVersion": "2020-06-01",
           "type": "extensions",
           "name": "zipdeploy",
@@ -176,6 +164,18 @@
             "packageUri": "https://github.com/schmm2/kiri-backend/releases/download/public/kiri-backend-v001.zip"
           }
         }
+      ]
+    },
+    {
+      "type": "Microsoft.Web/sites/functions/keys",
+      "apiVersion": "2020-06-01",
+      "name": "[concat(variables('functionAppName'), '/default/frontendkey')]",
+      "properties": {
+        "name": "frontendkey",
+        "value": "[variables('frontendKey')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
       ]
     },
     {
