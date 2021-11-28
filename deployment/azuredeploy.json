@@ -150,7 +150,8 @@
           "type": "extensions",
           "name": "zipdeploy",
           "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]",
+            "WaitSection"
           ],
           "properties": {
             "packageUri": "https://github.com/schmm2/kiri-backend/releases/download/public/kiri-backend-v001.zip"
