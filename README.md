@@ -2,8 +2,7 @@
 
 ## Repositories
 
-I'm happy for every submitted issue and pull request.
-
+I'm happy for every submitted issue and pull request.  
 Please follow the links for the corresponding repos:
 
 - [Deploy Script](https://github.com/schmm2/kiri-deploy)
