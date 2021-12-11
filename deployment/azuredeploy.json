@@ -49,7 +49,6 @@
   },
   "variables": {
     "tenantId": "[subscription().tenantId]",
-    //"frontendKey": "[uniqueString(resourceGroup().id)]",
     "storageAccountName": "[concat('kiri', uniqueString(resourceGroup().id))]",
     "frontendAppName": "[concat(parameters('siteName'),'')]",
     "appInsightsAppName": "[concat(parameters('siteName'),'-appInsights')]",
@@ -107,10 +106,6 @@
         "clientAffinityEnabled": false,
         "siteConfig": {
           "appSettings": [
-            {
-              "name": "WEBSITE_RUN_FROM_PACKAGE",
-              "value": "1"
-            },
             {
               "name": "AzureWebJobsStorage",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
@@ -194,15 +189,17 @@
           }
         },
         {
+          "name": "web",
+          "type": "sourcecontrols",
           "apiVersion": "2020-06-01",
-          "type": "extensions",
-          "name": "zipdeploy",
+          "properties": {
+            "RepoUrl": "https://github.com/schmm2/kiri-backend.git",
+            "branch": "main",
+            "IsManualIntegration": true
+          },
           "dependsOn": [
             "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
-          ],
-          "properties": {
-            "packageUri": "https://github.com/schmm2/kiri-backend/releases/download/public/kiri-backend-v001.zip"
-          }
+          ]
         }
       ]
     },
@@ -252,6 +249,10 @@
             {
               "name": "REACT_APP_AUTHAPPID",
               "value": "[parameters('spIdApp')]"
+            },
+            {
+              "name": "REACT_APP_APIAPPID",
+              "value": "[parameters('spIdAPI')]"
             },
             {
               "name": "REACT_APP_BACKENDAPIURL",
