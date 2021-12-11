@@ -41,11 +41,17 @@
     "spIdApp": {
       "defaultValue": "",
       "type": "secureString"
+    },
+    "spIdAPI": {
+      "defaultValue": "",
+      "type": "secureString"
     }
   },
   "variables": {
+    "tenantId": "[subscription().tenantId]",
     "storageAccountName": "[concat('kiri', uniqueString(resourceGroup().id))]",
     "frontendAppName": "[concat(parameters('siteName'),'')]",
+    "appInsightsAppName": "[concat(parameters('siteName'),'-appInsights')]",
     "functionAppName": "[concat(parameters('siteName'),'-backend')]",
     "frontendASPName": "[concat(parameters('siteName'),'-aspfrontend')]",
     "functionASPName": "[concat(parameters('siteName'),'-aspbackend')]",
@@ -92,7 +98,8 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('functionASPName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-        "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('cosmosName'))]"
+        "[resourceId('Microsoft.DocumentDb/databaseAccounts', variables('cosmosName'))]",
+        "[resourceId('microsoft.insights/components/', variables('appInsightsAppName'))]"
       ],
       "properties": {
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('functionASPName'))]",
@@ -106,6 +113,10 @@
             {
               "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-06-01').keys[0].value)]"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsAppName'))).InstrumentationKey]"
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
@@ -142,6 +153,42 @@
       },
       "resources": [
         {
+          "name": "[concat(variables('functionAppName'), '/authsettingsV2')]",
+          "apiVersion": "2021-02-01",
+          "type": "Microsoft.Web/sites/config",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/sites', variables('functionAppName'))]"
+          ],
+          "properties": {
+            "globalValidation": {
+              "requireAuthentication": true,
+              "unauthenticatedClientAction": "RedirectToLoginPage"
+            },
+            "IdentityProviders": {
+              "azureActiveDirectory": {
+                "enabled": true,
+                "registration": {
+                  "openIdIssuer": "[concat('https://login.microsoftonline.com/', variables('tenantId'),'/v2.0')]",
+                  "clientId": "[parameters('spIdAPI')]",
+                  "clientSecretSettingName": "AD_IDENTITY_CLIENT_SECRET"
+                },
+                "validation": {
+                  "allowedAudiences": [
+                    "[concat('api://',parameters('spIdAPI'))]"
+                  ]
+                },
+                "isAutoProvisioned": false
+              },
+              "login": {
+                "tokenStore": {
+                  "enabled": true
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "web",
           "type": "sourcecontrols",
           "apiVersion": "2020-06-01",
@@ -155,6 +202,19 @@
           ]
         }
       ]
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "name": "[variables('appInsightsAppName')]",
+      "apiVersion": "2020-02-02",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', variables('functionAppName'))]": "Resource"
+      },
+      "properties": {
+        "Application_Type": "web",
+        "ApplicationId": "[variables('functionAppName')]"
+      }
     },
     {
       "type": "Microsoft.Web/serverfarms",
@@ -191,12 +251,12 @@
               "value": "[parameters('spIdApp')]"
             },
             {
-              "name": "REACT_APP_BACKENDAPIURL",
-              "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2020-06-01').defaultHostName,'/api')]"
+              "name": "REACT_APP_APIAPPID",
+              "value": "[parameters('spIdAPI')]"
             },
             {
-              "name": "REACT_APP_FUNCTIONKEY",
-              "value": "[listkeys(concat(resourceId('Microsoft.Web/sites', variables('functionAppName')), '/host/default'),'2020-06-01').functionKeys.default]"
+              "name": "REACT_APP_BACKENDAPIURL",
+              "value": "[concat('https://', reference(resourceId('Microsoft.Web/sites', variables('functionAppName')), '2020-06-01').defaultHostName,'/api')]"
             }
           ]
         }
