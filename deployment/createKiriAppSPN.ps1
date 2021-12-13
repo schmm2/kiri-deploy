@@ -8,13 +8,8 @@ Invoke-Command {
     $RessourceAccessApp.ResourceAccess = $Acc1,$Acc2
     $RessourceAccessApp.ResourceAppId = "00000003-0000-0000-c000-000000000000"
 
-    $RessourceAccessApp = New-Object -TypeName "Microsoft.Open.AzureAD.Model.RequiredResourceAccess"
-    $Acc3 = New-Object -TypeName "Microsoft.Open.AzureAD.Model.ResourceAccess" -ArgumentList "68ce7e13-ac30-4979-b2c5-6334ef2f70ef","Scope"
-    $RessourceAccessApp.ResourceAccess = $Acc3
-    $RessourceAccessApp.ResourceAppId = "00000003-0000-0000-c000-000000000000"
-
     Connect-AzureAD
-    $App = New-AzureADApplication -DisplayName $AppName -AvailableToOtherTenants $true -GroupMembershipClaims "SecurityGroup" -RequiredResourceAccess @($RessourceAccessApp)
+    $App = New-AzureADApplication -DisplayName $AppName -AvailableToOtherTenants $true -GroupMembershipClaims "SecurityGroup" -RequiredResourceAccess $RessourceAccessApp
     $AppRestUrl = 'https://graph.microsoft.com/v1.0/applications/' + $App.ObjectId
 
     write-host "--------------------------------------------------------------------------"

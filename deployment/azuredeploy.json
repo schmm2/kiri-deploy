@@ -163,7 +163,7 @@
           "properties": {
             "globalValidation": {
               "requireAuthentication": true,
-              "unauthenticatedClientAction": "RedirectToLoginPage"
+              "unauthenticatedClientAction": "Return401"
             },
             "IdentityProviders": {
               "azureActiveDirectory": {
